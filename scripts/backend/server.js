@@ -1,96 +1,85 @@
 const express = require("express");
 const mysql = require("mysql2");
-var cors = require("cors");
+const cors = require("cors");
 const bodyParser = require("body-parser");
 
-// Create the Express app
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Create a connection to the MySQL database
-const mysqlConfig = {
-  host: process.env.DB_HOST || "db",
-  port: process.env.DB_PORT || "3306",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "pass123",
-  database: process.env.DB_NAME || "appdb",
-};
+// Use a MySQL connection pool (recommended)
+const pool = mysql.createPool({
+  host: "localhost",
+  port: "3306",
+  user: "user",
+  password: "pass123",
+  database: "appdb",
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+});
 
-let con = null;
-const databaseInit = () => {
-  con = mysql.createConnection(mysqlConfig);
-  con.connect((err) => {
-    if (err) {
-      console.error("Error connecting to the database: ", err);
-      return;
-    }
-    console.log("Connected to the database");
-  });
-};
-
-const createDatabase = () => {
-  con.query("CREATE DATABASE IF NOT EXISTS appdb", (err, results) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    console.log("Database created successfully");
-  });
-};
-
-const createTable = () => {
-  con.query(
-    "CREATE TABLE IF NOT EXISTS apptb (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255))",
-    (err, results) => {
-      if (err) {
-        console.error(err);
-        return;
-      }
-      console.log("Table created successfully");
-    }
-  );
-};
-
-// GET request
+// GET: Fetch all users
 app.get("/user", (req, res) => {
-  databaseInit();
-  con.query("SELECT * FROM apptb", (err, results) => {
+  pool.query("SELECT * FROM apptb", (err, results) => {
     if (err) {
-      console.error(err);
-      res.status(500).send("Error retrieving data from database");
-    } else {
-      res.json(results);
+      console.error("Error fetching users:", err);
+      return res.status(500).send("Database error");
     }
+    res.json(results);
   });
 });
 
-// POST request
+// POST: Insert a user
 app.post("/user", (req, res) => {
-  con.query(
-    "INSERT INTO apptb (name) VALUES (?)",
-    [req.body.data],
-    (err, results) => {
+  const name = req.body.data;
+  if (!name) {
+    return res.status(400).send("Missing 'data' in request body");
+  }
+
+  pool.query("INSERT INTO apptb (name) VALUES (?)", [name], (err, results) => {
+    if (err) {
+      console.error("Error inserting user:", err);
+      return res.status(500).send("Database error");
+    }
+    res.json(results);
+  });
+});
+
+// POST: Create database (only works if already connected to MySQL server)
+app.post("/dbinit", (req, res) => {
+  const connection = mysql.createConnection({
+    host: "localhost",
+    port: "3306",
+    user: "user",
+    password: "pass123",
+  });
+
+  connection.query("CREATE DATABASE IF NOT EXISTS appdb", (err) => {
+    connection.end();
+    if (err) {
+      console.error("Error creating database:", err);
+      return res.status(500).send("Error creating database");
+    }
+    res.send("Database created successfully");
+  });
+});
+
+// POST: Create table
+app.post("/tbinit", (req, res) => {
+  pool.query(
+    `CREATE TABLE IF NOT EXISTS apptb (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255)
+    )`,
+    (err) => {
       if (err) {
-        console.error(err);
-        res.status(500).send("Error retrieving data from database");
-      } else {
-        res.json(results);
+        console.error("Error creating table:", err);
+        return res.status(500).send("Error creating table");
       }
+      res.send("Table created successfully");
     }
   );
-});
-
-app.post("/dbinit", (req, res) => {
-  databaseInit();
-  createDatabase();
-  res.json("Database created successfully");
-});
-
-app.post("/tbinit", (req, res) => {
-  databaseInit();
-  createTable();
-  res.json("Table created successfully");
 });
 
 // Start the server
