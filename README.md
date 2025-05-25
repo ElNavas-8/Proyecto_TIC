@@ -1,6 +1,6 @@
-# Documentación del Proyecto
+Proyecto de comparación de rendimiento # VM vs Docker
 
-Bienvenido a la documentación del proyecto. A continuación, encontrarás enlaces a documentos clave que forman parte de este repositorio.
+Este proyecto compara el uso de recursos y las métricas de rendimiento entre una máquina virtual completa (VirtualBox) y un contenedor Docker.
 
 ## Índice de Documentos
 
@@ -9,35 +9,28 @@ Bienvenido a la documentación del proyecto. A continuación, encontrarás enlac
 
 ---
 
-### Cómo usar esta documentación
+## 🔧 Estructura del proyecto
+notebooks/: Jupyter Notebook para ejecutar y trazar benchmarks.
 
-- Haz clic en cualquiera de los enlaces anteriores para acceder al documento correspondiente.
-- Asegúrate de tener acceso a los enlaces si están alojados en una plataforma privada (como Google Drive, Dropbox, etc.).
+scripts/: Scripts de configuración para la máquina virtual, Docker y el propio Dockerfile
 
----
+results/: Marcador de posición para los resultados del benchmark
 
-### Contacto
-
-Para cualquier duda o sugerencia, por favor contacta al autor del proyecto o abre un *issue* en este repositorio.
-
-# VM vs Docker Performance Benchmark Project
-
-This project compares resource usage and performance metrics between a full virtual machine (VirtualBox) and a Docker container.
-
-## 🔧 Project Structure
-notebooks/: Jupyter Notebook for running and plotting benchmarks
-scripts/: Setup scripts for VM, Docker, and Dockerfile itself
-results/: Placeholder for benchmark results
-
-## 📦 Requirements
+## 📦 Requisitos
 Python 3.8+
-Docker (host or WSL2)
-VirtualBox (with a Linux guest)
+
+Docker (host o WSL2)
+
+VirtualBox (con un invitado Linux)
+
 sysbench, jupyter, matplotlib, psutil
 
-## 🚀 Quick Start
-bash
-# On VM or Docker:
+## 🚀 Inicio rápido En VM o Docker
+
 cd scripts
-bash vm_setup.sh      # For VirtualBox
-bash docker_setup.sh  # For Docker or WSL2
+
+[Levantar el proyecto](https://github.com/ElNavas-8/Proyecto_TIC/blob/main/scripts/README.md)
+
+bash stats.py # Para VM
+
+bash stats.py # Para Docker o WSL2
